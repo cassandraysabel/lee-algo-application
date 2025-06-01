@@ -321,35 +321,15 @@ export default function GamePage({ level, onNavigate }: GamePageProps) {
 
           const updatedAnimal = {...animal, counter: 0}
 
-          if (level <= 2) {
-            const directions = [
-              {x: 0, y: 1}, {x: 1, y: 0}, 
-              {x: 0, y: -1}, {x: -1, y: 0}
-            ]
-            const randomDir = directions[Math.floor(Math.random() * directions.length)]
-            
-            const newX = updatedAnimal.x + randomDir.x
-            const newY = updatedAnimal.y + randomDir.y
-            
-            if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
-              const isObstacle = obstacles.some(obs => obs.x === newX && obs.y === newY)
-              const isBuilding = buildings.some(b => b.x === newX && b.y === newY)
-              const isOnCarmine = (newX === carminePos.x && newY === carminePos.y)
-              const isOnOtherAnimal = animals.some(a => a !== animal && a.x === newX && a.y === newY)
-              
-              if (!isObstacle && !isBuilding && !isOnCarmine && !isOnOtherAnimal) {
-                updatedAnimal.x = newX
-                updatedAnimal.y = newY
-              }
-            }
-          } else {
-            const path = leeAlgorithm(
-              {x: animal.x, y: animal.y},
-              {x: carminePos.x, y: carminePos.y}
-            )
-            
-            if (path.length > 0) {
-              const nextStep = path[0]
+          const path = leeAlgorithm(
+            {x: animal.x, y: animal.y},
+            {x: carminePos.x, y: carminePos.y}
+          )
+          
+          if (path.length > 0) {
+            const maxSteps = level <= 2 ? path.length - 1 : path.length
+            if (maxSteps > 0) {
+              const nextStep = path[Math.min(1, maxSteps) - 1]
               const isObstacle = obstacles.some(obs => obs.x === nextStep.x && obs.y === nextStep.y)
               const isBuilding = buildings.some(b => b.x === nextStep.x && b.y === nextStep.y)
               
@@ -359,8 +339,7 @@ export default function GamePage({ level, onNavigate }: GamePageProps) {
               }
             }
           }
-
-          if (updatedAnimal.x === carminePos.x && updatedAnimal.y === carminePos.y) {
+          if (level > 2 && updatedAnimal.x === carminePos.x && updatedAnimal.y === carminePos.y) {
             setGameState("failed")
           }
 
@@ -421,9 +400,11 @@ export default function GamePage({ level, onNavigate }: GamePageProps) {
 
       const isObstacle = obstacles.some((obs) => obs.x === newX && obs.y === newY) || 
                         buildings.some((b) => b.x === newX && b.y === newY && 
-                        !(b.x === currentLevel.target.x && b.y === currentLevel.target.y)) ||
-                        animals.some(a => a.x === newX && a.y === newY)
-      if (!isObstacle && (newX !== carminePos.x || newY !== carminePos.y)) {
+                        !(b.x === currentLevel.target.x && b.y === currentLevel.target.y))
+      
+      const isAnimal = animals.some(a => a.x === newX && a.y === newY)
+      
+      if (!isObstacle && !isAnimal && (newX !== carminePos.x || newY !== carminePos.y)) {
         setCarminePos({ x: newX, y: newY })
         setMoves((prev) => prev + 1)
       }
@@ -560,9 +541,11 @@ export default function GamePage({ level, onNavigate }: GamePageProps) {
 
     const isObstacle = obstacles.some((obs) => obs.x === newX && obs.y === newY) || 
                       buildings.some((b) => b.x === newX && b.y === newY && 
-                      !(b.x === currentLevel.target.x && b.y === currentLevel.target.y)) ||
-                      animals.some(a => a.x === newX && a.y === newY)
-    if (!isObstacle && (newX !== carminePos.x || newY !== carminePos.y)) {
+                      !(b.x === currentLevel.target.x && b.y === currentLevel.target.y))
+    
+    const isAnimal = animals.some(a => a.x === newX && a.y === newY)
+    
+    if (!isObstacle && !isAnimal && (newX !== carminePos.x || newY !== carminePos.y)) {
       setCarminePos({ x: newX, y: newY })
       setMoves((prev) => prev + 1)
     }
